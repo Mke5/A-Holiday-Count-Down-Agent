@@ -2,33 +2,14 @@
 import { Mastra } from '@mastra/core/mastra';
 import { PinoLogger } from '@mastra/loggers';
 import { LibSQLStore } from '@mastra/libsql';
+import cron from "node-cron";
+import { getUpcomingHoliday } from './tools/getUpcomingHoliday';
 // import { weatherWorkflow } from './workflows/weather-workflow';
 // import { weatherAgent } from './agents/weather-agent';
 import { toolCallAppropriatenessScorer, completenessScorer, translationScorer } from './scorers/weather-scorer';
 import { holidayWorkflow } from './workflows/holiday-workflow';
 import { holidayAgent } from './agents/holiday-agent';
-
-// export const mastra = new Mastra({
-//   workflows: { weatherWorkflow },
-//   agents: { weatherAgent },
-//   scorers: { toolCallAppropriatenessScorer, completenessScorer, translationScorer },
-//   storage: new LibSQLStore({
-//     // stores observability, scores, ... into memory storage, if it needs to persist, change to file:../mastra.db
-//     url: ":memory:",
-//   }),
-//   logger: new PinoLogger({
-//     name: 'Mastra',
-//     level: 'info',
-//   }),
-//   telemetry: {
-//     // Telemetry is deprecated and will be removed in the Nov 4th release
-//     enabled: false, 
-//   },
-//   observability: {
-//     // Enables DefaultExporter and CloudExporter for AI tracing
-//     default: { enabled: true }, 
-//   },
-// });
+import { a2aAgentRoute } from './routes/a2a-agent-route';
 
 export const mastra = new Mastra({
   workflows: { holidayWorkflow },
@@ -37,28 +18,31 @@ export const mastra = new Mastra({
   storage: new LibSQLStore({ url: ':memory:' }),
   logger: new PinoLogger({ name: 'Mastra', level: 'info' }),
   observability: { default: { enabled: true } },
+  server: {
+    build: {
+      openAPIDocs: true,
+      swaggerUI: true,
+    },
+    apiRoutes: [
+      a2aAgentRoute
+    ]
+  }
 });
 
-// const run = await holidayWorkflow.createRunAsync()
-// async function runHolidayUpdate(){
-//   try{
-//     const country = process.env.COUNTRY_CODE || 'NG'
-//     console.log(`🕒 Running scheduled holiday check for ${country}...`);
-//     const result = await run.start({
-//       inputData: { country }
-//     })
 
-//     const message = await result
-//     if (!message) {
-//       console.log('⚠️ No message generated');
-//       return;
-//     }
-//     console.log(`✅ Holiday Update:\n${JSON.parse(JSON.stringify(message))}`);
+
+// cron.schedule("* 9 * * *", async () => {
+//   try{  
+//     const holiday = await getUpcomingHoliday()
+//     const message = `🌴 Next holiday: ${holiday.name} on ${holiday.date} (${holiday.daysLeft} days away).`;
+//     console.log("⏰ Sending daily reminder:", message);
 //   }catch(error){
-//     console.error('❌ Holiday update failed:', error);
+//     console.error("Cron job error:", error);
 //   }
-// }
 
-// runHolidayUpdate();
-// setInterval(runHolidayUpdate, 24 * 60 * 60 * 1000);
-// setInterval(runHolidayUpdate, 60 * 1000);
+//   0: Minute (0-59)
+// 9: Hour (0-23)
+// 15: Day of Month (1-31)
+// *: Month (1-12 or JAN-DEC) - * means every month
+// *: Day of Week (0-6 or SUN-SAT) - * means every day of the week
+// })

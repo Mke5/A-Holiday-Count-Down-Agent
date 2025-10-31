@@ -44,6 +44,6 @@ export const holidayTool = createTool({
       .filter((h: Holiday) => new Date(h.date) > today)
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-    return { holidays };
+    return { holidays: holidays.slice(0, 3), today: new Date().toISOString() };
   },
 });
