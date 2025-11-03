@@ -6,7 +6,6 @@ import { toolCallAppropriatenessScorer, completenessScorer } from './scorers/wea
 import { holidayWorkflow } from './workflows/holiday-workflow';
 import { holidayAgent } from './agents/holiday-agent';
 import { a2aAgentRoute } from './routes/a2a-agent-route';
-import { weatherWorkflow } from './workflows/weather-workflow';
 
 export const mastra = new Mastra({
   workflows: { holidayWorkflow},
