@@ -13,7 +13,7 @@ export const holidayTool = createTool({
   description: 'Fetches public holidays for a specific country and year from Calendarific API. Use this when users ask about holidays, public holidays, national holidays, or holiday dates.',
   inputSchema: z.object({
     country: z.string().describe('The 2-letter country code (e.g., US, GB, NG)'),
-    year: z.number().int().min(2000).max(2030).describe('Year to fetch holidays for'),
+    year: z.number().int().min(2000).max(2030).describe('Defaullt Current Year to fetch holidays for'),
     month: z.number().int().min(1).max(12).optional().describe('Optional: specific month (1-12)'),
     day: z.number().int().min(1).max(31).optional().describe('Optional: specific day'),
   }),
@@ -22,31 +22,45 @@ export const holidayTool = createTool({
       name: z.string(),
       date: z.string(),
     })),
+    today: z.string(),
   }),
   execute: async ({ context }) => {
-    const country = context.country;
-    const apiKey = process.env.CALENDARIFIC_API_KEY;
-    const year = new Date().getFullYear();
+    try{
 
-    const url = `https://calendarific.com/api/v2/holidays?api_key=${apiKey}&country=${country}&year=${year}`;
+      const country = context.country;
+      const apiKey = process.env.CALENDARIFIC_API_KEY;
+      const year = new Date().getFullYear();
 
-    const res = await fetch(url);
-    const data = await res.json();
+      const url = `https://calendarific.com/api/v2/holidays?api_key=${apiKey}&country=${country}&year=${year}`;
 
-    if (!data?.response?.holidays) {
-      throw new Error('Failed to fetch holidays');
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (!data?.response?.holidays) {
+        throw new Error('Failed to fetch holidays');
+      }
+
+      const today = new Date();
+      // const holidays: Holiday[] = Object.values(data.response.holidays)
+      //   .flat()
+      //   .map((h: any) => ({
+      //     name: h.name,
+      //     date: h.date.iso,
+      //   }))
+      //   .filter((h: Holiday) => new Date(h.date) > today)
+      //   .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      const holidays = data.response.holidays.map((holiday: any) => ({
+        name: holiday.name,
+        description: holiday.description,
+        date: holiday.date.iso,
+        type: holiday.type,
+        locations: holiday.locations,
+        states: holiday.states,
+      }));
+      return { holidays: holidays, today: new Date().toISOString() };
+    }catch(error){
+      console.error('Error fetching holidays:', error);
+      throw error;
     }
-
-    const today = new Date();
-    const holidays: Holiday[] = Object.values(data.response.holidays)
-      .flat()
-      .map((h: any) => ({
-        name: h.name,
-        date: h.date.iso,
-      }))
-      .filter((h: Holiday) => new Date(h.date) > today)
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-
-    return { holidays: holidays.slice(0, 3), today: new Date().toISOString() };
   },
 });
