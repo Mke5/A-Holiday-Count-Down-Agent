@@ -9,10 +9,13 @@ interface Holiday {
 }
 
 export const holidayTool = createTool({
-  id: 'get-holidays',
-  description: 'Fetches upcoming holidays for a given country using Calendarific API.',
+  id: 'get_holidays',
+  description: 'Fetches public holidays for a specific country and year from Calendarific API. Use this when users ask about holidays, public holidays, national holidays, or holiday dates.',
   inputSchema: z.object({
     country: z.string().describe('The 2-letter country code (e.g., US, GB, NG)'),
+    year: z.number().int().min(2000).max(2030).describe('Year to fetch holidays for'),
+    month: z.number().int().min(1).max(12).optional().describe('Optional: specific month (1-12)'),
+    day: z.number().int().min(1).max(31).optional().describe('Optional: specific day'),
   }),
   outputSchema: z.object({
     holidays: z.array(z.object({
