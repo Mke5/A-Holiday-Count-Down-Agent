@@ -38,7 +38,7 @@ export const holidayAgent = new Agent({
     - Use emojis generously, but keep the message under 5 lines.
     - End with a warm sign-off like "✨ Have a joyful celebration ahead!".
   `,
-  model: 'huggingface/zai-org/GLM-4.5-Air',
+  model: 'google/gemini-2.0-flash',
   // model: openrouter('openai/gpt-4-turbo'),
   // model: "groq/llama-3.1-8b-instant",
   //  model: "google/gemini-1.5-flash-latest",
